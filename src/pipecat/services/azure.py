@@ -26,7 +26,7 @@ from pipecat.frames.frames import (
     URLImageRawFrame,
 )
 from pipecat.services.ai_services import ImageGenService, STTService, TTSService
-from pipecat.services.openai import BaseOpenAILLMService
+from pipecat.services.openai import BaseOpenAILLMService, OpenAIAssistantContextAggregator, OpenAIContextAggregatorPair, OpenAILLMContext, OpenAIUserContextAggregator
 from pipecat.transcriptions.language import Language
 from pipecat.utils.time import time_now_iso8601
 
@@ -69,6 +69,17 @@ class AzureLLMService(BaseOpenAILLMService):
             azure_endpoint=self._endpoint,
             api_version=self._api_version,
         )
+
+
+    @staticmethod
+    def create_context_aggregator(
+        context: OpenAILLMContext, *, assistant_expect_stripped_words: bool = True
+    ) -> OpenAIContextAggregatorPair:
+        user = OpenAIUserContextAggregator(context)
+        assistant = OpenAIAssistantContextAggregator(
+            user, expect_stripped_words=assistant_expect_stripped_words
+        )
+        return OpenAIContextAggregatorPair(_user=user, _assistant=assistant)
 
 
 class AzureTTSService(TTSService):
